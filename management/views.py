@@ -2,14 +2,15 @@ import datetime
 
 from django.conf import settings
 from rest_framework import status
-from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
+from rest_framework.generics import ListAPIView, ListCreateAPIView, RetrieveUpdateDestroyAPIView, RetrieveAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .models import Book, Fine, Borrow
 from .permissions import IsAdmin, IsMember
-from .serializers import BookSerializer, BorrowSerializer, ReturnSerializer, FineSerializer
+from .serializers import BookSerializer, BorrowSerializer, ReturnSerializer, FineSerializer, \
+    BorrowDetailSerializer
 
 
 class BookListCreateAPIView(ListCreateAPIView):
@@ -38,6 +39,24 @@ class BorrowAPIView(APIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(data=serializer.data, status=status.HTTP_201_CREATED)
+
+
+class BorrowListAPIView(ListAPIView):
+    queryset = Borrow.objects.all()
+    serializer_class = BorrowSerializer
+    permission_classes = [IsAuthenticated, IsMember]
+
+    def get_queryset(self):
+        return super().get_queryset().filter(member=self.request.user).select_related('book')
+
+
+class BorrowRetrieveAPIView(RetrieveAPIView):
+    queryset = Borrow.objects.all()
+    serializer_class = BorrowDetailSerializer
+    permission_classes = [IsAuthenticated, IsMember]
+
+    def get_queryset(self):
+        return super().get_queryset().filter(member=self.request.user).select_related('book')
 
 
 class ReturnAPIView(APIView):
