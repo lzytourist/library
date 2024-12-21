@@ -98,3 +98,21 @@ class ReturnAPIView(APIView):
         return Response(data={
             'message': 'Book has been returned.',
         })
+
+
+class FineListAPIView(ListAPIView):
+    queryset = Fine.objects.all()
+    serializer_class = FineSerializer
+    permission_classes = [IsAuthenticated, IsMember]
+
+    def get_queryset(self):
+        return super().get_queryset().filter(member=self.request.user)
+
+
+class FineRetrieveAPIView(RetrieveAPIView):
+    queryset = Fine.objects.all()
+    serializer_class = FineSerializer
+    permission_classes = [IsAuthenticated, IsMember]
+
+    def get_queryset(self):
+        return super().get_queryset().filter(member=self.request.user)
